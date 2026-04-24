@@ -356,10 +356,13 @@ function doorSVG(lp, vl, va, tipo, lado){
   // hinge corner
   const hx = isEsq ? openingX1 : openingX2;
   // swing end point (quarter arc)
-  const arcEndX = isEsq ? openingX1 + arcR : openingX2 - arcR;
+  // Esq: hinge on left (openingX1), arc sweeps RIGHT → end is (openingX1 + arcR, wallY2+arcR) but capped
+  // Dir: hinge on right (openingX2), arc sweeps LEFT → end is (openingX2 - arcR, wallY2+arcR)
+  const arcEndX = isEsq ? Math.min(openingX1 + arcR, SW-2) : Math.max(openingX2 - arcR, 2);
   const arcEndY = wallY2 + arcR;
-  // arc sweep: isEsq = sweep right (1), isDir = sweep left (0)
-  const sweep = isEsq ? 1 : 0;
+  // sweep: Esq hinge left → door opens to RIGHT (clockwise from top) = sweep 0
+  //        Dir hinge right → door opens to LEFT (counter-clockwise) = sweep 1  
+  const sweep = isEsq ? 0 : 1;
 
   // Labels
   const larpLabel = vl > 0 ? vl + '' : '—';
@@ -450,10 +453,12 @@ function doorSVG(lp, vl, va, tipo, lado){
     <rect x="${openingX1}" y="${wallY2}" width="${openingW}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.5"/>
     <!-- hinge dot -->
     <circle cx="${hx}" cy="${wallY2+leafH/2}" r="2" fill="#9c6b3c" stroke="#5c3d1e" stroke-width=".5"/>
-    <!-- swing arc (quarter circle) -->
-    <path d="M${openingX1} ${wallY2+leafH} A${arcR} ${arcR} 0 0 ${sweep} ${arcEndX} ${arcEndY}" fill="rgba(200,144,42,.07)" stroke="#c8902a" stroke-width="1.2" stroke-dasharray="4,2.5"/>
+    <!-- swing arc: starts at hinge corner, swings 90 degrees -->
+    <path d="M${hx} ${wallY2+leafH} A${arcR} ${arcR} 0 0 ${sweep} ${arcEndX} ${arcEndY}" fill="rgba(200,144,42,.07)" stroke="#c8902a" stroke-width="1.2" stroke-dasharray="4,2.5"/>
     <!-- arc end tick -->
     <line x1="${arcEndX-3}" y1="${arcEndY}" x2="${arcEndX+3}" y2="${arcEndY}" stroke="#c8902a" stroke-width="1.2"/>
+    <!-- door leaf open position (dashed line from hinge to arc end) -->
+    <line x1="${hx}" y1="${wallY2+leafH}" x2="${hx}" y2="${arcEndY}" stroke="#c8902a" stroke-width="1" stroke-dasharray="3,2" opacity=".5"/>
     <!-- floor line -->
     <line x1="0" y1="${arcEndY+6}" x2="${SW}" y2="${arcEndY+6}" stroke="#5c3d1e" stroke-width="1.5"/>
     <!-- dimension: opening width -->
@@ -462,7 +467,7 @@ function doorSVG(lp, vl, va, tipo, lado){
     <line x1="${openingX1}" y1="${arcEndY+3}" x2="${openingX2}" y2="${arcEndY+3}" stroke="#5c3d1e" stroke-width=".8"/>
     <text x="${SW/2}" y="${arcEndY+14}" text-anchor="middle" font-size="7.5" font-family="Oswald,sans-serif" fill="#5c3d1e" font-weight="700">${larpLabel}</text>
     <!-- lado label -->
-    ${lado?`<text x="${hx > SW/2 ? openingX1+5 : openingX2-5}" y="${wallY2+leafH+12}" text-anchor="${hx > SW/2 ? 'start':'end'}" font-size="7" font-family="Oswald,sans-serif" fill="#c8902a" font-weight="600">${isEsq?'⬅':'➡'} ${lado.toUpperCase()}</text>`:''}
+    ${lado?`<text x="${isEsq ? openingX1+4 : openingX2-4}" y="${wallY2+leafH+12}" text-anchor="${isEsq ? 'start':'end'}" font-size="7" font-family="Oswald,sans-serif" fill="#c8902a" font-weight="600">${isEsq?'⬅ ESQ':'DIR ➡'}</text>`:''}
     `;
   }
 
